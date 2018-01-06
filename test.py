@@ -21,7 +21,7 @@ def statelist(liste):
 
 print()
 print()
-print("Andreas' Decompiler")
+print("Curipaca Decompiler")
 print()
 
 basisadressen = [0x08000000, 0x20000000]
@@ -125,6 +125,8 @@ fall10 = decomp.testfall("Testreihen/demsys-O3.elf",
 
 
 faelle = [fall1, fall2, fall3, fall4, fall5, fall6, fall7, fall8, fall9, fall10]
+faelle = [fall5, fall6, fall9, fall10]
+
 
 tabelle1 = [] # Für die Übersichtstabelle am Ende
 tabelle2 = []
@@ -138,12 +140,14 @@ for fall in faelle:
     while not fall.konvergent:
         print("    %i. Iteration..." %iterationen)
         fall.disassembly()
+        fall.jumpsearch() 
         fall.datensuche()
         datenlisten = fall.vergleiche_datenwortadressen()
         print("    kor=%i" %len(datenlisten[0]), end='')
         print(" fdat=%i"   %len(datenlisten[1]), end='')
         print(" fops=%i"   %len(datenlisten[2]))
         iterationen += 1
+    fall.check_jumps()
     fall.schreibe_asm()
     
     # fälschlich als Daten bewertete Adressen anzeigen:

@@ -42,6 +42,7 @@ class testfall:
         self.byte_adressen    = []
         self.zero_adressen    = []
         self.vektor_adressen  = []
+        self.jumptargets      = []
         self.konvergent       = False
         self.einsprungpunkt   = None
         self.programm         = None
@@ -120,7 +121,7 @@ class testfall:
                 try:
                     insn = next(disasm)
                 except:
-                    pass
+                    pass  ## TODO: Tritt das auf, und was heisst das?
                 if insn is not None:
                     programm.append(insn)
                     insn_groesse = insn.size
@@ -136,6 +137,45 @@ class testfall:
             for i in self.programm:
                 print("0x%08x\t%s\t%s" %(i.address, i.mnemonic, i.op_str), file=asm_file)
         asm_file.close()
+        
+    # Notes about Branch instrcutions:
+    # 
+    # B; CBNZ; CBZ; BL; BLX; BX; TBB/TBH (manual page 91)
+    # Parameters:
+    #   B:    always an address
+    #   BLE:  always an address
+    #   BL:   always an address (of a function)
+    #   CBNZ: always Rn + address
+    #   CBZ:  always Rn + address
+    #   BX:   always an address
+    #   BLX:  always an address
+
+    def jumpsearch(self):
+        jumptargets = []
+        
+        for i in self.programm:
+            target = is_branch(i)
+            if target is not None:
+                jumptargets.append(target)
+            
+        jumptargets = list(set(jumptargets)) # purge duplicates
+        jumptargets = sorted(jumptargets)    # sort
+        
+        self.jumptargets = jumptargets       # apply results
+        
+    def check_jumps(self):
+        for target in self.jumptargets:
+            if target in self.word_adressen:
+                print("Sprung zeigt auf Wort bei 0x%08x" %target)
+            elif target in self.hword_adressen:
+                print("Sprung zeigt auf Halbwort bei 0x%08x" %target)
+            elif target in self.byte_adressen:
+                print("Sprung zeigt auf Byte bei 0x%08x" %target)
+            elif target in self.zero_adressen:
+                print("Sprung zeigt auf Nullbyte bei 0x%08x" %target)
+            elif target in self.vektor_adressen:
+                print("Sprung zeigt auf den Vektor bei 0x%08x" %target)
+        
         
     def datensuche(self):
         datenwortadressen = []
@@ -167,8 +207,8 @@ class testfall:
                         datenwortadressen.append(zieladresse1)
                         datenwortadressen.append(zieladresse2)
                     else:
-                        tbbsprung = ist_tbb_sprung(i, self.bin_datei_inhalt, self.offset)
-                        tbhsprung = ist_tbh_sprung(i, self.bin_datei_inhalt, self.offset)
+                        tbbsprung = ist_tbb_sprung(i, self.bin_datei_inhalt, self.offset, self.jumptargets)
+                        tbhsprung = ist_tbh_sprung(i, self.bin_datei_inhalt, self.offset, self.jumptargets)
                         if tbbsprung is not None:
                             byteadressen += tbbsprung
                         elif tbhsprung is not None:
@@ -291,6 +331,20 @@ class testfall:
                 korrekt.append(i)
         return([korrekt, fdata, fops])
 
+# Helper function to check wether an instruction is a (conditional)branch.
+# Returns the potential target address.
+def is_branch(insn):
+    b_address = None
+    branchcodes = ["b", "bx", "bl", "blx", "ble"]
+    cbcodes = ["cbz", "cbnz"]
+    if insn.mnemonic in branchcodes:
+        b_address = insn.operands[0].mem.base # TODO: Check wether more 
+        # then mem.base needs to be taken into account (i.e. index, scale...)
+    elif insn.mnemonic in cbcodes:
+        b_address = insn.operands[1].mem.base # TODO: Check wether more 
+        # then mem.base needs to be taken into account (i.e. index, scale...)
+    return b_address
+
 #Hilfsfunktion um einzelne Datenworte aus der Binärdatei zu laden:
 def read_word(datei_inhalt, addresse, offset, wordsize=4):
     dateiaddresse = addresse - offset
@@ -369,15 +423,17 @@ def finde_tabelle(i):
         raise ValueError("Zu falsche Anzahl Operanden")
     return tabellenadresse
 
-def ist_tbb_sprung(i, bin_datei_inhalt, offset):
+def ist_tbb_sprung(i, bin_datei_inhalt, offset, jumptargets):
     kleinstes_sprungziel = None
     byteadressen = None
     if i.mnemonic == "tbb":
         byteadressen = []
         tabellenadresse = finde_tabelle(i)
         byteadresse = tabellenadresse
-        kleinstes_sprungziel = 0xffffffff
+        kleinstes_sprungziel = 0xfffffffe
         while byteadresse < kleinstes_sprungziel:
+            if byteadresse in jumptargets:
+                print("Tabellenende-Jumptarget Kollision (TBB)!!!")
             byteinhalt = read_word(bin_datei_inhalt, byteadresse, offset, wordsize=1)
             byteadressen.append(byteadresse)
             sprungziel = byteinhalt * 2 + tabellenadresse
@@ -385,16 +441,18 @@ def ist_tbb_sprung(i, bin_datei_inhalt, offset):
                 kleinstes_sprungziel = sprungziel
             elif byteinhalt and sprungziel <= byteadresse:
                 kleinstes_sprungziel = 0 # als Fehlerhaft markieren
-                #print("Fehler! sprungziel <= byteadresse; Tabelle bei 0x%08x" %tabellenadresse)
+                print("Fehler! (TBB) sprungziel 0x%08x <= byteadresse; Tabelle bei 0x%08x" %(byteadresse, tabellenadresse))
                 if not byteadresse%2:
                     byteadressen = byteadressen[:-1] # letztes Byte entfernen,
                     # da mindestens dieses schon zu viel war.
             byteadresse += 1
+            if byteadresse in jumptargets:
+                byteadresse = 0xffffffff
     return byteadressen
 
 # Erzeugt eine Liste mit den Addressen der Instruktionen die mutmaßlich auf
 # .word Addressen zugreifen, sowie den vermuteten jewiligen .word Addressen.
-def ist_tbh_sprung(i, bin_datei_inhalt, offset):
+def ist_tbh_sprung(i, bin_datei_inhalt, offset, jumptargets):
     zieladressen = []
     disassembly = []
     kleinstes_sprungziel = None
@@ -403,8 +461,10 @@ def ist_tbh_sprung(i, bin_datei_inhalt, offset):
         halbwortadressen = []
         tabellenadresse = finde_tabelle(i)
         halbwortadresse = tabellenadresse
-        kleinstes_sprungziel = 0xffffffff
+        kleinstes_sprungziel = 0xfffffffe
         while halbwortadresse < kleinstes_sprungziel:
+            if halbwortadresse in jumptargets:
+                print("Tabellenende-Jumptarget Kollision (TBH)!!!")
             halbwortinhalt = read_word(bin_datei_inhalt, halbwortadresse, offset, wordsize=2)
             disassembly.append(pseudo_op(halbwortadresse, ".halfword", halbwortinhalt, 2))
             halbwortadressen.append(halbwortadresse)
@@ -413,6 +473,8 @@ def ist_tbh_sprung(i, bin_datei_inhalt, offset):
             if sprungziel < kleinstes_sprungziel  and halbwortinhalt:
                 kleinstes_sprungziel = sprungziel
             halbwortadresse += 2
+            if halbwortadresse in jumptargets:
+                halbwortadresse = 0xffffffff
     return halbwortadressen
 
 
