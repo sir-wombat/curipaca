@@ -43,12 +43,15 @@ class testfall:
         self.zero_adressen    = []
         self.vektor_adressen  = []
         self.jumptargets      = []
+        self.functions        = []
+        self.databytes        = None
+        self.databytes_ref    = None
         self.konvergent       = False
         self.einsprungpunkt   = None
         self.programm         = None
         self.bin_datei_inhalt = None
-        self.data_list_ref    = None
-        self.data_list        = None
+        #self.data_list_ref    = None
+        #self.data_list        = None
         
     def lade_bin(self):
         #Binary in den Speicher laden:
@@ -133,23 +136,14 @@ class testfall:
         
     def schreibe_asm(self):
         # Sauberes Disassembly in Datei schreiben:
+        function_addresses = [item[0] for item in self.functions]
         with open(self.asmfile, mode='w') as asm_file:
             for i in self.programm:
+                if i.address in function_addresses:
+                    print("", file=asm_file)
                 print("0x%08x\t%s\t%s" %(i.address, i.mnemonic, i.op_str), file=asm_file)
         asm_file.close()
         
-    # Notes about Branch instrcutions:
-    # 
-    # B; CBNZ; CBZ; BL; BLX; BX; TBB/TBH (manual page 91)
-    # Parameters:
-    #   B:    always an address
-    #   BLE:  always an address
-    #   BL:   always an address (of a function)
-    #   CBNZ: always Rn + address
-    #   CBZ:  always Rn + address
-    #   BX:   always an address
-    #   BLX:  always an address
-
     def jumpsearch(self):
         jumptargets = []
         
@@ -160,7 +154,7 @@ class testfall:
             
         jumptargets = list(set(jumptargets)) # purge duplicates
         jumptargets = sorted(jumptargets)    # sort
-        
+        #print("    Es gibt", len(jumptargets), "Sprungziele.")
         self.jumptargets = jumptargets       # apply results
         
     def check_jumps(self):
@@ -174,8 +168,7 @@ class testfall:
             elif target in self.zero_adressen:
                 print("Sprung zeigt auf Nullbyte bei 0x%08x" %target)
             elif target in self.vektor_adressen:
-                print("Sprung zeigt auf den Vektor bei 0x%08x" %target)
-        
+                print("Sprung zeigt auf den Vektor bei 0x%08x" %target)    
         
     def datensuche(self):
         datenwortadressen = []
@@ -207,8 +200,10 @@ class testfall:
                         datenwortadressen.append(zieladresse1)
                         datenwortadressen.append(zieladresse2)
                     else:
-                        tbbsprung = ist_tbb_sprung(i, self.bin_datei_inhalt, self.offset, self.jumptargets)
-                        tbhsprung = ist_tbh_sprung(i, self.bin_datei_inhalt, self.offset, self.jumptargets)
+                        endsigns = self.jumptargets + self.word_adressen\
+                        + self.zero_adressen
+                        tbbsprung = ist_tbb_sprung(i, self.bin_datei_inhalt, self.offset, endsigns)
+                        tbhsprung = ist_tbh_sprung(i, self.bin_datei_inhalt, self.offset, endsigns)
                         if tbbsprung is not None:
                             byteadressen += tbbsprung
                         elif tbhsprung is not None:
@@ -231,7 +226,8 @@ class testfall:
             self.byte_adressen = byteadressen
             self.zero_adressen += zeroadressen
             self.programm = sauberes_disassembly
-            
+ 
+    """           
     def get_datenwortadressen(self):
         symboltable = []
         vierer = self.disasm_fehler + self.vektor_adressen + self.word_adressen
@@ -286,7 +282,7 @@ class testfall:
         #print_symbols(shorttable)
         self.data_list_ref = shorttable
         return
-        
+            
     def vergleiche_datenwortadressen(self):
         self.get_datenwortadressen()
         self.get_datenwortadressen_ref()
@@ -329,13 +325,92 @@ class testfall:
                     fops.append(i)
             else:
                 korrekt.append(i)
-        return([korrekt, fdata, fops])
+        return [korrekt, fdata, fops]
+    """
+
+    def get_databytes_ref(self):
+        databytes = []
+        symboltable = []
+        befehl = readelf + " -s " + self.elffile + " | grep \'$d\\|$t\'"
+        import subprocess
+        ausgabe = subprocess.check_output(befehl, shell=True)
+        for line in ausgabe.splitlines():
+            linelist = line.decode('UTF-8').split()
+            #print(linelist[1], linelist[7][1])
+            entry = [int(linelist[1], 16), linelist[7][1]]
+            symboltable.append(entry)
+        symboltable = sorted(symboltable)
+        #print_symbols(symboltable)
+        # Filter: only symbols within the Flash Memory area are of interest
+        symboltable2 = []
+        for symbol in symboltable:
+            if symbol[0] >= self.offset:
+                symboltable2.append(symbol)         
+        #print_symbols(symboltable2)
+        if symboltable2[0][0] != self.offset:
+            raise ValueError("No Symbol for the start of the Flash Memory")
+        state = "x"
+        byteaddress = self.offset
+        symbol_index = 0
+        while byteaddress <= self.ende:
+            if symboltable2[symbol_index][0] == byteaddress:
+                state = symboltable2[symbol_index][1]
+                if symbol_index < len(symboltable2)-1:
+                    symbol_index += 1
+                else:
+                    print("Fehler! Keine Symbole mehr! symbol_index= ", symbol_index)
+            elif symboltable2[symbol_index][0] < byteaddress:
+                print("symboltable2[",symbol_index,"][0] = ", symboltable2[symbol_index][0] , " byteaddress= ", byteaddress)
+                print("self.ende=",self.ende)
+                raise ValueError("Symboltable doesn't fit the assumptions.")
+            if state == "d":
+                databytes.append(byteaddress)
+            byteaddress += 1
+        self.databytes_ref = databytes
+        return databytes
+
+    def get_databytes(self):
+        databytes = []
+        fours = self.disasm_fehler + self.vektor_adressen + self.word_adressen
+        twos = self.hword_adressen + self.zero_adressen
+        ones  = self.byte_adressen
+        for i in fours:
+            databytes.append(i+0)
+            databytes.append(i+1)
+            databytes.append(i+2)
+            databytes.append(i+3)
+        for i in twos:
+            databytes.append(i+0)
+            databytes.append(i+1)
+        for i in ones:
+            databytes.append(i+0)
+        databytes = sorted(list(set(databytes)))
+        self.databytes = databytes
+        return databytes
+    
+    def compare_databytes(self):
+        self.get_databytes()
+        self.get_databytes_ref()
+        fdat = []
+        fops = []
+        corr = []
+        for dbyte in self.databytes_ref:
+            if dbyte in self.databytes:
+                corr.append(dbyte)
+            else:
+                fops.append(dbyte)
+        for dbyte in self.databytes:
+            if dbyte not in self.databytes_ref:
+                fdat.append(dbyte)
+        return [corr, fdat, fops]
+
 
 # Helper function to check wether an instruction is a (conditional)branch.
 # Returns the potential target address.
 def is_branch(insn):
     b_address = None
-    branchcodes = ["b", "bx", "bl", "blx", "ble"]
+    branchcodes = ["b.n", "b.w", "bx", "bl", "blx", "ble.n", "ble.w",
+                   "bne.n", "bne.w", "beq.n", "beq.w"]
     cbcodes = ["cbz", "cbnz"]
     if insn.mnemonic in branchcodes:
         b_address = insn.operands[0].mem.base # TODO: Check wether more 

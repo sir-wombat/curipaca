@@ -126,7 +126,7 @@ fall10 = decomp.testfall("Testreihen/demsys-O3.elf",
 
 faelle = [fall1, fall2, fall3, fall4, fall5, fall6, fall7, fall8, fall9, fall10]
 faelle = [fall5, fall6, fall9, fall10]
-
+#faelle = [fall5, fall6]
 
 tabelle1 = [] # Für die Übersichtstabelle am Ende
 tabelle2 = []
@@ -140,15 +140,26 @@ for fall in faelle:
     while not fall.konvergent:
         print("    %i. Iteration..." %iterationen)
         fall.disassembly()
-        fall.jumpsearch() 
+        fall.jumpsearch()
         fall.datensuche()
-        datenlisten = fall.vergleiche_datenwortadressen()
+        datenlisten = fall.compare_databytes()
         print("    kor=%i" %len(datenlisten[0]), end='')
         print(" fdat=%i"   %len(datenlisten[1]), end='')
         print(" fops=%i"   %len(datenlisten[2]))
         iterationen += 1
+    last_byte = 0
+    """
+    print("    Falsch als Daten (fdat):")
+    for x in datenlisten[1]:
+        if x-1 > last_byte:
+            if last_byte != 0:
+                print("      End:   0x%08x" %last_byte)
+                print()
+            print("      Start: 0x%08x" %x)
+        last_byte = x
+    """
     fall.check_jumps()
-    fall.schreibe_asm()
+    #fall.schreibe_asm() # passiert jetzt nach der Funktionssuche
     
     # fälschlich als Daten bewertete Adressen anzeigen:
     #  decomp.print_hexlist(datenlisten[2])
@@ -188,8 +199,11 @@ for fall in faelle:
         vergleich = fnkn.ref_vergleich(ref_liste, f_liste) 
         algo_verg_listen.append(vergleich)
         
-    ges_liste = fnkn.kombiniere_listen(algo_listen)
+    ges_liste = fnkn.kombiniere_listen(algo_listen)  # enthält ALLE Funktionen
     #fnkn.zeige_funktionsliste(ges_liste)
+    
+    fall.functions = ges_liste
+    fall.schreibe_asm() 
     
     for i in range(0, algo_anz): # zweite Schleife über die Algos
         verg_listen = algo_listen[i+1:] + algo_listen[:i]
