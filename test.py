@@ -30,7 +30,7 @@ fall1 = decomp.testfall("Testreihen/serprog-O0.elf",
                         "Testreihen/serprog-O0.bin",
                         "Testreihen/serprog-O0.s",
                         0x08000000,
-                        0x080025f8,
+                        0x080025f7,
                         basisadressen
                         )
                         
@@ -38,7 +38,7 @@ fall2 = decomp.testfall("Testreihen/serprog-O3.elf",
                         "Testreihen/serprog-O3.bin",
                         "Testreihen/serprog-O3.s",
                         0x08000000,
-                        0x080025d0,
+                        0x080025cf,
                         basisadressen
                         )
                         
@@ -48,7 +48,7 @@ fall3 = decomp.testfall("Testreihen/gnuk-O1.elf",
                         "Testreihen/gnuk-O1.bin",
                         "Testreihen/gnuk-O1.s",
                         0x08000000,
-                        0x08015e44,
+                        0x08015e43,
                         basisadressen,
                         fall3fehler
                         )
@@ -59,7 +59,7 @@ fall4 = decomp.testfall("Testreihen/gnuk-O3.elf",
                         "Testreihen/gnuk-O3.bin",
                         "Testreihen/gnuk-O3.s",
                         0x08000000,
-                        0x0801c7d4,
+                        0x0801c7d3,
                         basisadressen,
                         fall4fehler
                         )
@@ -69,7 +69,7 @@ fall5 = decomp.testfall("Testreihen/blackmagic-O0.elf",
                         "Testreihen/blackmagic-O0.bin",
                         "Testreihen/blackmagic-O0.s",
                         0x08002000,
-                        0x0801567a,
+                        0x08015679,
                         basisadressen
                         )
 
@@ -77,7 +77,7 @@ fall6 = decomp.testfall("Testreihen/blackmagic-O3.elf",
                         "Testreihen/blackmagic-O3.bin",
                         "Testreihen/blackmagic-O3.s",
                         0x08002000,
-                        0x08013432,
+                        0x08013431,
                         basisadressen
                         )
 
@@ -87,7 +87,7 @@ fall7 = decomp.testfall("Testreihen/neug-O1.elf",
                         "Testreihen/neug-O1.bin",
                         "Testreihen/neug-O1.s",
                         0x08000000,
-                        0x08006512,
+                        0x08006511,
                         basisadressen,
                         fall7fehler
                         )
@@ -98,7 +98,7 @@ fall8 = decomp.testfall("Testreihen/neug-O3.elf",
                         "Testreihen/neug-O3.bin",
                         "Testreihen/neug-O3.s",
                         0x08000000,
-                        0x080079c2,
+                        0x080079c1,
                         basisadressen,
                         fall8fehler
                         )
@@ -108,7 +108,7 @@ fall9 = decomp.testfall("Testreihen/demsys-O0.elf",
                         "Testreihen/demsys-O0.bin",
                         "Testreihen/demsys-O0.s",
                         0x08000000,
-                        0x08008c32,
+                        0x08008c31,
                         basisadressen,
                         fall9fehler
                         )
@@ -118,14 +118,14 @@ fall10 = decomp.testfall("Testreihen/demsys-O3.elf",
                         "Testreihen/demsys-O3.bin",
                         "Testreihen/demsys-O3.s",
                         0x08000000,
-                        0x08007372,
+                        0x08007371,
                         basisadressen,
                         fall10fehler
                         )
 
 
 faelle = [fall1, fall2, fall3, fall4, fall5, fall6, fall7, fall8, fall9, fall10]
-faelle = [fall5, fall6, fall9, fall10]
+#faelle = [fall5, fall6, fall9, fall10]
 #faelle = [fall5, fall6]
 
 tabelle1 = [] # Für die Übersichtstabelle am Ende
@@ -145,7 +145,10 @@ for fall in faelle:
         datenlisten = fall.compare_databytes()
         print("    kor=%i" %len(datenlisten[0]), end='')
         print(" fdat=%i"   %len(datenlisten[1]), end='')
-        print(" fops=%i"   %len(datenlisten[2]))
+        print(" fops=%i"   %len(datenlisten[2]), end='')
+        gesbytes = len(datenlisten[0])+len(datenlisten[1])+len(datenlisten[2])
+        relcorr = 100.0 * len(datenlisten[0]) / gesbytes
+        print(" %5.2f%% korrekt" %relcorr)
         iterationen += 1
     last_byte = 0
     """

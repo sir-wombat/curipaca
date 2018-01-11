@@ -1,13 +1,13 @@
 
 
-Andreas' Decompiler
+Curipaca Decompiler
 
 Testfall Nr. 1 (Testreihen/serprog-O0.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=9620 fdat=0 fops=100
+    kor=9620 fdat=0 fops=100 98.97% korrekt
     1. Iteration...
-    kor=9620 fdat=0 fops=100
+    kor=9620 fdat=0 fops=100 98.97% korrekt
   Suche nach Funktionen...
     0 Funktionen in falschen Datenbereichen
     0 Funktionen in falschen Codebereichen
@@ -16,9 +16,9 @@ Testfall Nr. 1 (Testreihen/serprog-O0.bin)
 Testfall Nr. 2 (Testreihen/serprog-O3.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=9344 fdat=324 fops=12
+    kor=9668 fdat=0 fops=12 99.88% korrekt
     1. Iteration...
-    kor=9344 fdat=324 fops=12
+    kor=9668 fdat=0 fops=12 99.88% korrekt
   Suche nach Funktionen...
     0 Funktionen in falschen Datenbereichen
     0 Funktionen in falschen Codebereichen
@@ -27,11 +27,11 @@ Testfall Nr. 2 (Testreihen/serprog-O3.bin)
 Testfall Nr. 3 (Testreihen/gnuk-O1.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=87260 fdat=2308 fops=100
+    kor=88636 fdat=932 fops=100 98.85% korrekt
     1. Iteration...
-    kor=87262 fdat=2308 fops=98
+    kor=88638 fdat=932 fops=98 98.85% korrekt
     2. Iteration...
-    kor=87262 fdat=2308 fops=98
+    kor=88638 fdat=932 fops=98 98.85% korrekt
   Suche nach Funktionen...
     0 Funktionen in falschen Datenbereichen
     3 Funktionen in falschen Codebereichen
@@ -40,11 +40,11 @@ Testfall Nr. 3 (Testreihen/gnuk-O1.bin)
 Testfall Nr. 4 (Testreihen/gnuk-O3.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=112360 fdat=4110 fops=222
+    kor=115586 fdat=820 fops=286 99.05% korrekt
     1. Iteration...
-    kor=112364 fdat=4106 fops=222
+    kor=115590 fdat=816 fops=286 99.06% korrekt
     2. Iteration...
-    kor=112364 fdat=4106 fops=222
+    kor=115590 fdat=816 fops=286 99.06% korrekt
   Suche nach Funktionen...
     0 Funktionen in falschen Datenbereichen
     3 Funktionen in falschen Codebereichen
@@ -53,33 +53,35 @@ Testfall Nr. 4 (Testreihen/gnuk-O3.bin)
 Testfall Nr. 5 (Testreihen/blackmagic-O0.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=76114 fdat=252 fops=3116
+    kor=76354 fdat=12 fops=3116 96.06% korrekt
     1. Iteration...
-    kor=76114 fdat=252 fops=3116
+    kor=76354 fdat=12 fops=3116 96.06% korrekt
+    2. Iteration...
+    kor=76354 fdat=12 fops=3116 96.06% korrekt
   Suche nach Funktionen...
-    3 Funktionen in falschen Datenbereichen
+    0 Funktionen in falschen Datenbereichen
     0 Funktionen in falschen Codebereichen
   Fertig.
 
 Testfall Nr. 6 (Testreihen/blackmagic-O3.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=67784 fdat=2710 fops=212
+    kor=70478 fdat=24 fops=204 99.68% korrekt
     1. Iteration...
-    kor=67796 fdat=2698 fops=212
+    kor=70490 fdat=12 fops=204 99.69% korrekt
     2. Iteration...
-    kor=67796 fdat=2698 fops=212
+    kor=70490 fdat=12 fops=204 99.69% korrekt
   Suche nach Funktionen...
-    3 Funktionen in falschen Datenbereichen
+    0 Funktionen in falschen Datenbereichen
     0 Funktionen in falschen Codebereichen
   Fertig.
 
 Testfall Nr. 7 (Testreihen/neug-O1.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=24808 fdat=988 fops=78
+    kor=25412 fdat=384 fops=78 98.21% korrekt
     1. Iteration...
-    kor=24808 fdat=988 fops=78
+    kor=25412 fdat=384 fops=78 98.21% korrekt
   Suche nach Funktionen...
     0 Funktionen in falschen Datenbereichen
     3 Funktionen in falschen Codebereichen
@@ -88,9 +90,9 @@ Testfall Nr. 7 (Testreihen/neug-O1.bin)
 Testfall Nr. 8 (Testreihen/neug-O3.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=30478 fdat=614 fops=78
+    kor=30854 fdat=238 fops=78 98.99% korrekt
     1. Iteration...
-    kor=30478 fdat=614 fops=78
+    kor=30854 fdat=238 fops=78 98.99% korrekt
   Suche nach Funktionen...
     0 Funktionen in falschen Datenbereichen
     3 Funktionen in falschen Codebereichen
@@ -99,9 +101,9 @@ Testfall Nr. 8 (Testreihen/neug-O3.bin)
 Testfall Nr. 9 (Testreihen/demsys-O0.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=34906 fdat=840 fops=144
+    kor=35708 fdat=38 fops=144 99.49% korrekt
     1. Iteration...
-    kor=34906 fdat=840 fops=144
+    kor=35708 fdat=38 fops=144 99.49% korrekt
   Suche nach Funktionen...
     0 Funktionen in falschen Datenbereichen
     0 Funktionen in falschen Codebereichen
@@ -110,9 +112,9 @@ Testfall Nr. 9 (Testreihen/demsys-O0.bin)
 Testfall Nr. 10 (Testreihen/demsys-O3.bin)
   Erzeuge Disassembly und suche Daten...
     0. Iteration...
-    kor=28684 fdat=866 fops=4
+    kor=29524 fdat=26 fops=4 99.90% korrekt
     1. Iteration...
-    kor=28684 fdat=866 fops=4
+    kor=29524 fdat=26 fops=4 99.90% korrekt
   Suche nach Funktionen...
     0 Funktionen in falschen Datenbereichen
     0 Funktionen in falschen Codebereichen
@@ -120,22 +122,22 @@ Testfall Nr. 10 (Testreihen/demsys-O3.bin)
 
 
 		Fall 1	Fall 2	Fall 3	Fall 4	Fall 5	Fall 6	Fall 7	Fall 8	Fall 9	Fall 10	
-Algo 1 korrekt	70	67	336	282	403	274	91	67	174	146	
+Algo 1 korrekt	70	67	336	282	403	276	91	67	174	146	
 Algo 1 f.-pos.	0	0	0	0	0	0	0	0	2	2	
 Algo 2 korrekt	26	25	69	45	307	191	40	26	94	71	
-Algo 2 f.-pos.	0	0	6	6	2	6	2	3	2	3	
+Algo 2 f.-pos.	0	0	6	7	2	4	2	3	2	3	
 Algo 3 korrekt	51	47	327	289	465	330	76	64	148	98	
 Algo 3 f.-pos.	0	0	1	8	0	1	0	2	4	9	
 Algo 4 korrekt	0	0	272	238	5	5	78	61	13	7	
 Algo 4 f.-pos.	0	0	2	2	0	0	1	1	0	0	
 Gesamt korrekt	91	88	406	371	568	455	128	109	215	188	
-Gesamt f.-pos.	0	0	9	16	2	7	3	6	8	14	
+Gesamt f.-pos.	0	0	9	17	2	5	3	6	8	14	
 Gesamt f.-neg.	15	16	15	16	20	36	11	11	19	21	
 Gesamtanzahl	106	104	421	387	588	491	139	120	234	209	
 
 
 		Algo 1	Algo 2	Algo 3	Algo 4	
-insg. korrekt	1910	894	1895	679	
-insg. f-pos.	4	30	25	6	
+insg. korrekt	1912	894	1895	679	
+insg. f-pos.	4	29	25	6	
 einz. korrekt	361	65	185	78	
-einz. f-pos.	4	30	25	6	
+einz. f-pos.	4	29	25	6

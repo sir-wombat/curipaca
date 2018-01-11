@@ -227,107 +227,6 @@ class testfall:
             self.zero_adressen += zeroadressen
             self.programm = sauberes_disassembly
  
-    """           
-    def get_datenwortadressen(self):
-        symboltable = []
-        vierer = self.disasm_fehler + self.vektor_adressen + self.word_adressen
-        vierer = sorted(list(set(vierer)))
-        zweier = self.hword_adressen + self.zero_adressen
-        zweier = sorted(list(set(zweier)))
-        einer  = self.byte_adressen
-        einer  = sorted(list(set(einer)))
-        for i in vierer:
-            symboltable.append([i, "d"])
-            symboltable.append([i+4, "t"])
-        for i in zweier:
-            symboltable.append([i, "d"])
-            symboltable.append([i+2, "t"])
-        for i in einer:
-            symboltable.append([i, "d"])
-            symboltable.append([i, "t"])
-        symboltable = sorted(symboltable)
-        shorttable = [symboltable[0]]
-        for i in symboltable:
-            if shorttable[-1][0] != i[0]:
-                shorttable.append(i)
-        previous = "x"
-        shortshorttable = []
-        for i in shorttable:
-            if i[1] != previous:
-                previous = i[1]
-                shortshorttable.append(i)
-        
-        self.data_list = shortshorttable
-        return
-        
-    def get_datenwortadressen_ref(self):
-        symboltable = []
-        befehl = readelf + " -s " + self.elffile + " | grep \'$d\\|$t\'"
-        import subprocess
-        ausgabe = subprocess.check_output(befehl, shell=True)
-        for line in ausgabe.splitlines():
-            linelist = line.decode('UTF-8').split()
-            #print(linelist[1], linelist[7][1])
-            entry = [int(linelist[1], 16), linelist[7][1]]
-            symboltable.append(entry)
-        symboltable = sorted(symboltable)
-        #print_symbols(symboltable)
-        shorttable = []
-        lastletter = "x"
-        for i in symboltable:
-            if i[0] in range(legalrange[0], legalrange[1]):
-                if i[1] != lastletter:
-                    shorttable.append(i)
-                    lastletter = i[1]
-        #print_symbols(shorttable)
-        self.data_list_ref = shorttable
-        return
-            
-    def vergleiche_datenwortadressen(self):
-        self.get_datenwortadressen()
-        self.get_datenwortadressen_ref()
-        # Hier werden die zwei Listen mit den Start-Stopp-Elementen verglichen.
-        start = self.offset
-        stopp = self.ende
-        ref_dat = []
-        ref_ops = []
-        #print_symbols(self.data_list_ref)
-        for i in self.data_list_ref:
-            if i[1] == "d":
-                ref_dat.append(i[0])
-            else:
-                ref_ops.append(i[0])
-        test_dat = []
-        test_ops = []
-        for i in self.data_list:
-            if i[1] == "d":
-                test_dat.append(i[0])
-            else:
-                test_ops.append(i[0])
-        fdata = []
-        fops  = []
-        korrekt = []
-        ref_data = False
-        test_data = False
-        for i in range(start, stopp):
-            if i in ref_dat:
-                ref_data = True
-            elif i in ref_ops:
-                ref_data = False
-            if i in test_dat:
-                test_data = True
-            elif i in test_ops:
-                test_data = False
-            if ref_data != test_data:  # FEHLER!
-                if test_data: # Falsch als Daten erkannt
-                    fdata.append(i)
-                else:         # Falsch als Instruktion erkannt
-                    fops.append(i)
-            else:
-                korrekt.append(i)
-        return [korrekt, fdata, fops]
-    """
-
     def get_databytes_ref(self):
         databytes = []
         symboltable = []
@@ -394,14 +293,23 @@ class testfall:
         fdat = []
         fops = []
         corr = []
-        for dbyte in self.databytes_ref:
-            if dbyte in self.databytes:
-                corr.append(dbyte)
+        meml = []
+        for address in range(self.offset, self.ende+1):
+            meml.append(0)
+        for address in self.databytes:
+            meml[address-self.offset] += 1
+        for address in self.databytes_ref:
+            meml[address-self.offset] -= 1
+        for address in range(self.offset, self.ende+1):
+            value = meml[address-self.offset]
+            if value == 0:
+                corr.append(address)
+            elif value == 1:
+                fdat.append(address)
+            elif value == -1:
+                fops.append(address)
             else:
-                fops.append(dbyte)
-        for dbyte in self.databytes:
-            if dbyte not in self.databytes_ref:
-                fdat.append(dbyte)
+                raise RuntimeError("This should never happen.")
         return [corr, fdat, fops]
 
 
@@ -516,7 +424,10 @@ def ist_tbb_sprung(i, bin_datei_inhalt, offset, jumptargets):
                 kleinstes_sprungziel = sprungziel
             elif byteinhalt and sprungziel <= byteadresse:
                 kleinstes_sprungziel = 0 # als Fehlerhaft markieren
-                print("Fehler! (TBB) sprungziel 0x%08x <= byteadresse; Tabelle bei 0x%08x" %(byteadresse, tabellenadresse))
+                #print("Fehler! (TBB) sprungziel 0x%08x <= byteadresse 0x%08x; Tabelle bei 0x%08x"
+                #      %(sprungziel, byteadresse, tabellenadresse))
+                # TODO: Can we do something to correct this?!?
+                # TODO: Otherwise how do we properly not there is an error here?
                 if not byteadresse%2:
                     byteadressen = byteadressen[:-1] # letztes Byte entfernen,
                     # da mindestens dieses schon zu viel war.
